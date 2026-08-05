@@ -51,6 +51,8 @@ option(CSP_ENABLE_KISS_CRC "Enables the extra CRC in the KISS interface (legacy)
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   set(CSP_POSIX 1)
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+  set(CSP_POSIX 1)
 elseif(CMAKE_SYSTEM_NAME STREQUAL "CYGWIN")
   set(CSP_POSIX 1)
   message(WARNING "CYGWIN detected: experimental port and ethernet not implemented")
@@ -65,7 +67,7 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Generic")
   endif()
 endif()
 
-if(CSP_POSIX AND CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
+if(CSP_POSIX AND (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_HOST_SYSTEM_NAME STREQUAL "Darwin"))
 
   include(CheckIncludeFiles)
   check_include_files(sys/socket.h HAVE_SYS_SOCKET_H)
@@ -119,6 +121,11 @@ target_include_directories(csp
   PRIVATE ${csp_inc_src}
 )
 
+if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+  # glibc's <endian.h> does not exist on Apple platforms; shim it.
+  target_include_directories(csp PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/compat/apple)
+endif()
+
 add_library(csp_common INTERFACE)
 if(CSP_POSIX)
   target_compile_options(csp_common INTERFACE
@@ -131,7 +138,7 @@ if(CSP_POSIX)
     -Wpointer-arith
     -Wshadow
     -Wwrite-strings
-    $<$<C_COMPILER_ID:Clang>:-Wno-gnu-zero-variadic-macro-arguments>)
+    $<$<OR:$<C_COMPILER_ID:Clang>,$<C_COMPILER_ID:AppleClang>>:-Wno-gnu-zero-variadic-macro-arguments>)
 endif()
 target_link_libraries(csp PRIVATE csp_common)
 
