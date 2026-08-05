@@ -4,6 +4,9 @@
 
 ![CSP](./doc/_images/csp.png)
 
+**IMPORTATNT**
+This was forked by LG_CubeSat and contains the minor changes and modifications to the protocol for our flight software.
+
 Cubesat Space Protocol (CSP) is a small protocol stack written in C. CSP
 is designed to ease communication between distributed embedded systems
 in smaller networks, such as Cubesats. The design follows the TCP/IP
