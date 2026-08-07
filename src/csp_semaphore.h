@@ -8,8 +8,20 @@
 #define CSP_SEMAPHORE_ERROR	-1
 
 #if (CSP_POSIX || __DOXYGEN__)
-    #include <semaphore.h>
-    typedef sem_t csp_bin_sem_t;
+    #if defined(__APPLE__)
+        /* macOS removed support for unnamed POSIX semaphores (sem_init()
+         * always fails with ENOSYS), so a mutex/condvar backed binary
+         * semaphore is used instead. */
+        #include <pthread.h>
+        typedef struct {
+            pthread_mutex_t mutex;
+            pthread_cond_t cond;
+            int value;
+        } csp_bin_sem_t;
+    #else
+        #include <semaphore.h>
+        typedef sem_t csp_bin_sem_t;
+    #endif
 #elif (CSP_FREERTOS)
     #include <FreeRTOS.h>
     #include <task.h>
